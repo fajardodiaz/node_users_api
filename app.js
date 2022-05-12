@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const helmet  = require('helmet');
+const rfs = require('rotating-file-stream');
 
 //config in the .env file
 require('dotenv').config();
@@ -17,11 +18,17 @@ const app = express();
 // Helmet JS
 app.use(helmet());
 
+// create a rotating write stream
+let accessLogStream = rfs.createStream('access.log',{
+  interval:'1d',
+  path: path.join(__dirname, 'log')
+});
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(logger('common'));
+app.use(logger('common', {stream: accessLogStream}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
